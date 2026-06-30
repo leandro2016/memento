@@ -33,13 +33,28 @@ const IMAGES = [
   { id: 16, src: img('16.JPG'), label: 'Card 16' },
 ]
 
-const TOTAL_PAIRS = IMAGES.length // 8
+const TOTAL_PAIRS = IMAGES.length // 16 available images
 
-/* ---- Difficulty levels: how long cards stay face-up before flipping back ---- */
+/* ---- Board size options: how many pairs to play with ---- */
+const SIZES = [
+  { id: 8, label: '🐣 8 pairs', pairs: 8, cols: 4 },   // 16 cards, 4x4
+  { id: 12, label: '🧒 12 pairs', pairs: 12, cols: 6 }, // 24 cards, 4x6
+  { id: 16, label: '🚀 16 pairs', pairs: 16, cols: 8 }, // 32 cards, 4x8
+]
+
+/* ---- Difficulty levels: peek time (how long unmatched cards stay face-up) ---- */
 const LEVELS = [
   { id: 'easy', label: '🐣 Easy', peekMs: 1800, matchMs: 600 },
   { id: 'normal', label: '🧒 Normal', peekMs: 1300, matchMs: 450 },
   { id: 'hard', label: '🚀 Hard', peekMs: 800, matchMs: 300 },
+]
+
+/* ---- Preview phase options: how long to flash all cards at start ---- */
+const PREVIEWS = [
+  { id: 0, label: '🚫 Off' },
+  { id: 3, label: '⏱️ 3s' },
+  { id: 5, label: '⏱️ 5s' },
+  { id: 8, label: '⏱️ 8s' },
 ]
 
 /* ---- Helpers ---- */
@@ -52,9 +67,10 @@ function shuffle(array) {
   return a
 }
 
-function buildDeck() {
-  // Each image appears twice
-  const doubled = [...IMAGES, ...IMAGES].map((img, idx) => ({
+function buildDeck(pairCount = TOTAL_PAIRS) {
+  // Use the first `pairCount` images, each appears twice
+  const selected = IMAGES.slice(0, pairCount)
+  const doubled = [...selected, ...selected].map((img, idx) => ({
     uid: idx,
     imageId: img.id,
     src: img.src,
@@ -69,10 +85,12 @@ function formatTime(seconds) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-function ratingFor(moves) {
-  if (moves <= 12) return '🏆 Memory Master!'
-  if (moves <= 18) return '🌟 Great job!'
-  if (moves <= 26) return '👍 Well done!'
+function ratingFor(moves, pairs) {
+  // Perfect = pairs moves; allow some slack
+  const perfect = pairs
+  if (moves <= perfect + 4) return '🏆 Memory Master!'
+  if (moves <= perfect + 10) return '🌟 Great job!'
+  if (moves <= perfect + 20) return '👍 Well done!'
   return '😊 Good try!'
 }
 
@@ -83,17 +101,23 @@ export default function Memotex() {
   const [screen, setScreen] = useState('start') // 'start' | 'game' | 'end'
   const [mode, setMode] = useState('single') // 'single' | 'two'
   const [level, setLevel] = useState('normal') // 'easy' | 'normal' | 'hard'
+  const [size, setSize] = useState(16) // 8 | 12 | 16 pairs
+  const [preview, setPreview] = useState(5) // 0 (off) | 3 | 5 | 8 seconds
   const [players, setPlayers] = useState({ p1: 'Player 1', p2: 'Player 2' })
 
-  const [deck, setDeck] = useState(() => buildDeck())
+  const [deck, setDeck] = useState(() => buildDeck(size))
   const [flipped, setFlipped] = useState([]) // uids currently face-up (max 2)
   const [matched, setMatched] = useState([]) // imageIds that are matched
-  const [locked, setLocked] = useState(false) // prevent clicks during pause
+  const [locked, setLocked] = useState(false) // prevent clicks during pause/preview
+  const [previewing, setPreviewing] = useState(false) // preview phase
+  const [previewLeft, setPreviewLeft] = useState(0) // seconds left in preview
   const [moves, setMoves] = useState(0)
   const [scores, setScores] = useState({ p1: 0, p2: 0 })
   const [turn, setTurn] = useState('p1') // whose turn (two-player)
   const [elapsed, setElapsed] = useState(0)
   const [running, setRunning] = useState(false)
+
+  const totalPairs = size // active pair count for this game
 
   // Timer
   useEffect(() => {
@@ -104,39 +128,77 @@ export default function Memotex() {
 
   // Detect game over
   useEffect(() => {
-    if (screen === 'game' && matched.length === TOTAL_PAIRS) {
+    if (screen === 'game' && matched.length === totalPairs) {
       setRunning(false)
       setScreen('end')
     }
-  }, [matched, screen])
+  }, [matched, screen, totalPairs])
 
-  const startGame = useCallback((selectedMode, selectedLevel) => {
+  // Preview countdown timer
+  useEffect(() => {
+    if (!previewing) return
+    const id = setInterval(() => {
+      setPreviewLeft((p) => {
+        if (p <= 1) {
+          clearInterval(id)
+          setPreviewing(false)
+          setLocked(false)
+          setRunning(true) // start the game timer after preview
+          return 0
+        }
+        return p - 1
+      })
+    }, 1000)
+    return () => clearInterval(id)
+  }, [previewing])
+
+  const startGame = useCallback((selectedMode, selectedLevel, selectedSize, selectedPreview) => {
+    const sz = selectedSize || size
+    const pv = selectedPreview !== undefined ? selectedPreview : preview
     setMode(selectedMode)
     setLevel(selectedLevel)
-    setDeck(buildDeck())
+    setSize(sz)
+    setPreview(pv)
+    setDeck(buildDeck(sz))
     setFlipped([])
     setMatched([])
-    setLocked(false)
     setMoves(0)
     setScores({ p1: 0, p2: 0 })
     setTurn('p1')
     setElapsed(0)
-    setRunning(true)
+    setRunning(false)
+    if (pv > 0) {
+      setLocked(true) // locked during preview
+      setPreviewLeft(pv)
+      setPreviewing(true)
+    } else {
+      setLocked(false)
+      setPreviewing(false)
+      setRunning(true) // no preview — start immediately
+    }
     setScreen('game')
-  }, [])
+  }, [size, preview])
 
   const newGame = useCallback(() => {
-    setDeck(buildDeck())
+    setDeck(buildDeck(size))
     setFlipped([])
     setMatched([])
-    setLocked(false)
     setMoves(0)
     setScores({ p1: 0, p2: 0 })
     setTurn('p1')
     setElapsed(0)
-    setRunning(true)
+    setRunning(false)
+    if (preview > 0) {
+      setLocked(true)
+      setPreviewLeft(preview)
+      setPreviewing(true)
+    } else {
+      setLocked(false)
+      setPreviewing(false)
+      setRunning(true)
+    }
     setScreen('game')
-  }, [])
+  }, [size, preview])
 
   const backToStart = useCallback(() => {
     setRunning(false)
@@ -196,6 +258,10 @@ export default function Memotex() {
           setMode={setMode}
           level={level}
           setLevel={setLevel}
+          size={size}
+          setSize={setSize}
+          preview={preview}
+          setPreview={setPreview}
           players={players}
           setPlayers={setPlayers}
           onStart={startGame}
@@ -217,6 +283,10 @@ export default function Memotex() {
           activeName={activeName}
           onNewGame={newGame}
           onExit={backToStart}
+          previewing={previewing}
+          previewLeft={previewLeft}
+          totalPairs={totalPairs}
+          size={size}
         />
       )}
 
@@ -227,6 +297,7 @@ export default function Memotex() {
           scores={scores}
           moves={moves}
           elapsed={elapsed}
+          totalPairs={totalPairs}
           onPlayAgain={newGame}
           onBackToStart={backToStart}
         />
@@ -238,7 +309,7 @@ export default function Memotex() {
 /* =========================================================================
    START SCREEN
    ========================================================================= */
-function StartScreen({ mode, setMode, level, setLevel, players, setPlayers, onStart }) {
+function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, setPreview, players, setPlayers, onStart }) {
   return (
     <div className="screen start-screen">
       <h1 className="title">
@@ -262,7 +333,20 @@ function StartScreen({ mode, setMode, level, setLevel, players, setPlayers, onSt
       </div>
 
       <div className="level-buttons">
-        <span className="level-label">Difficulty:</span>
+        <span className="level-label">Cards:</span>
+        {SIZES.map((s) => (
+          <button
+            key={s.id}
+            className={`level-btn ${size === s.id ? 'active' : ''}`}
+            onClick={() => setSize(s.id)}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="level-buttons">
+        <span className="level-label">Speed:</span>
         {LEVELS.map((l) => (
           <button
             key={l.id}
@@ -270,6 +354,19 @@ function StartScreen({ mode, setMode, level, setLevel, players, setPlayers, onSt
             onClick={() => setLevel(l.id)}
           >
             {l.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="level-buttons">
+        <span className="level-label">Peek:</span>
+        {PREVIEWS.map((p) => (
+          <button
+            key={p.id}
+            className={`level-btn ${preview === p.id ? 'active' : ''}`}
+            onClick={() => setPreview(p.id)}
+          >
+            {p.label}
           </button>
         ))}
       </div>
@@ -301,7 +398,7 @@ function StartScreen({ mode, setMode, level, setLevel, players, setPlayers, onSt
         )}
       </div>
 
-      <button className="play-btn" onClick={() => onStart(mode, level)}>
+      <button className="play-btn" onClick={() => onStart(mode, level, size, preview)}>
         ▶️ Play!
       </button>
     </div>
@@ -325,7 +422,14 @@ function GameScreen({
   activeName,
   onNewGame,
   onExit,
+  previewing,
+  previewLeft,
+  totalPairs,
+  size,
 }) {
+  const sizeConfig = SIZES.find((s) => s.id === size) || SIZES[2]
+  const cols = sizeConfig.cols
+
   return (
     <div className="screen game-screen">
       <header className="game-header">
@@ -344,7 +448,7 @@ function GameScreen({
               <span>👆 {moves}</span>
             </div>
           ) : (
-            <div className="turn-banner turn-p1">
+            <div className={`turn-banner turn-${turn}`}>
               <span className="turn-label">Turn:</span>
               <span className="turn-name">{activeName}</span>
             </div>
@@ -371,15 +475,24 @@ function GameScreen({
         </div>
       </header>
 
-      {mode === 'two' && (
-        <div className={`active-bar active-${turn}`}>
-          <span>{activeName}&apos;s turn — pick two cards!</span>
+      {previewing ? (
+        <div className="preview-banner">
+          👀 Memorize the cards! {previewLeft}s
         </div>
+      ) : (
+        mode === 'two' && (
+          <div className={`active-bar active-${turn}`}>
+            <span>{activeName}&apos;s turn — pick two cards!</span>
+          </div>
+        )
       )}
 
-      <div className="board">
+      <div
+        className="board"
+        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+      >
         {deck.map((card) => {
-          const isFlipped = flipped.includes(card.uid)
+          const isFlipped = previewing || flipped.includes(card.uid)
           const isMatched = matched.includes(card.imageId)
           return (
             <Card
@@ -387,6 +500,8 @@ function GameScreen({
               card={card}
               isFlipped={isFlipped}
               isMatched={isMatched}
+              isPreview={previewing}
+              turnColor={mode === 'two' ? turn : null}
               onClick={() => onCardClick(card)}
             />
           )
@@ -396,7 +511,7 @@ function GameScreen({
       <footer className="game-footer">
         <span className="footer-stat">⏱️ {formatTime(elapsed)}</span>
         <span className="footer-stat">👆 Moves: {moves}</span>
-        <span className="footer-stat">✅ Pairs: {matched.length}/{TOTAL_PAIRS}</span>
+        <span className="footer-stat">✅ Pairs: {matched.length}/{totalPairs}</span>
       </footer>
     </div>
   )
@@ -405,12 +520,12 @@ function GameScreen({
 /* =========================================================================
    CARD
    ========================================================================= */
-function Card({ card, isFlipped, isMatched, onClick }) {
+function Card({ card, isFlipped, isMatched, isPreview, turnColor, onClick }) {
   return (
     <button
-      className={`card ${isFlipped ? 'flipped' : ''} ${isMatched ? 'matched' : ''}`}
+      className={`card ${isFlipped ? 'flipped' : ''} ${isMatched ? 'matched' : ''} ${isPreview ? 'preview' : ''} ${turnColor ? `turn-${turnColor}` : ''}`}
       onClick={onClick}
-      disabled={isMatched}
+      disabled={isMatched || isPreview}
       aria-label={isFlipped || isMatched ? card.label : 'Face-down card'}
     >
       <div className="card-inner">
@@ -428,10 +543,10 @@ function Card({ card, isFlipped, isMatched, onClick }) {
 /* =========================================================================
    END SCREEN
    ========================================================================= */
-function EndScreen({ mode, players, scores, moves, elapsed, onPlayAgain, onBackToStart }) {
+function EndScreen({ mode, players, scores, moves, elapsed, totalPairs, onPlayAgain, onBackToStart }) {
   let winnerText
   if (mode === 'single') {
-    winnerText = ratingFor(moves)
+    winnerText = ratingFor(moves, totalPairs)
   } else {
     if (scores.p1 > scores.p2) winnerText = `🎉 ${players.p1} wins!`
     else if (scores.p2 > scores.p1) winnerText = `🎉 ${players.p2} wins!`
@@ -461,7 +576,7 @@ function EndScreen({ mode, players, scores, moves, elapsed, onPlayAgain, onBackT
           </div>
           <div className="result-row">
             <span>🏆 Pairs</span>
-            <strong>{scores.p1}/{TOTAL_PAIRS}</strong>
+            <strong>{scores.p1}/{totalPairs}</strong>
           </div>
         </div>
       ) : (
