@@ -600,19 +600,18 @@ function GameScreen({
         <span className="progress-text">{matched.length}/{totalPairs} pairs</span>
       </div>
 
-      {/* Match celebration toast */}
-      {matchToast && (
-        <div key={matchToast.key} className="match-toast">
-          <span className="match-toast-emoji">✨</span>
-          <span className="match-toast-text">Match!</span>
-          <span className="match-toast-emoji">🎉</span>
-        </div>
-      )}
-
       <div
         className="board"
         style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
       >
+        {/* Match celebration toast — inside board, floats over cards */}
+        {matchToast && (
+          <div key={matchToast.key} className="match-toast">
+            <span className="match-toast-emoji">✨</span>
+            <span className="match-toast-text">Match!</span>
+            <span className="match-toast-emoji">🎉</span>
+          </div>
+        )}
         {deck.map((card) => {
           const isFlipped = previewing || flipped.includes(card.uid)
           const isMatched = matched.includes(card.imageId)

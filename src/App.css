@@ -9,7 +9,8 @@
   justify-content: center;
   padding: 16px;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   transition: background 0.6s ease;
 }
 
@@ -263,6 +264,13 @@
 .game-screen {
   max-width: 900px;
   position: relative;
+  width: 100%;
+  height: 100%;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .game-header {
@@ -427,6 +435,10 @@
   display: grid;
   gap: 10px;
   perspective: 1000px;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: center;
 }
 
 /* iPad portrait & small laptops */
@@ -467,6 +479,7 @@
   padding: 0;
   border-radius: 14px;
   cursor: pointer;
+  min-height: 0;
 }
 
 @media (max-width: 480px) {
@@ -670,12 +683,11 @@
   line-height: 1;
 }
 
-/* ---- Match celebration toast (floating, doesn't shift layout) ---- */
+/* ---- Match celebration toast (floating over board, doesn't shift layout) ---- */
 .match-toast {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
   z-index: 10;
   display: flex;
   align-items: center;
@@ -689,6 +701,7 @@
   animation: toastPop 1.5s ease forwards;
   box-shadow: 0 6px 20px rgba(251, 86, 7, 0.4);
   pointer-events: none;
+  white-space: nowrap;
 }
 
 .match-toast-emoji {
@@ -697,11 +710,11 @@
 }
 
 @keyframes toastPop {
-  0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; }
-  20% { transform: translate(-50%, -50%) scale(1.2) rotate(3deg); opacity: 1; }
-  40% { transform: translate(-50%, -50%) scale(1) rotate(0); }
-  80% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
-  100% { transform: translate(-50%, -80%) scale(0.8); opacity: 0; }
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  15% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  30% { transform: translate(-50%, -50%) scale(1); }
+  75% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
 }
 
 @keyframes emojiSpin {
