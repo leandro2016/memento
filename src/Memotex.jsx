@@ -74,6 +74,9 @@ const THEMES = [
   { id: 'space', label: '🚀 Space', bg: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', accent: '#8338ec' },
 ]
 
+/* ---- Player avatars ---- */
+const AVATARS = ['🐶', '🐱', '🦁', '🦊', '🐼', '🐸', '🦄', '🐯', '🐵', '🐰']
+
 /* ---- Helpers ---- */
 function shuffle(array) {
   const a = [...array]
@@ -123,6 +126,8 @@ export default function Memotex() {
   const [theme, setTheme] = useState('ocean') // ocean | jungle | sunset | space
   const [cardBack, setCardBack] = useState('question') // question | ball | rainbow | star | magic
   const [players, setPlayers] = useState({ p1: 'Player 1', p2: 'Player 2' })
+  const [avatars, setAvatars] = useState({ p1: '🐶', p2: '🐱' })
+  const [matchToast, setMatchToast] = useState(null) // { id, emoji } for celebration toast
 
   const [deck, setDeck] = useState(() => buildDeck(size))
   const [flipped, setFlipped] = useState([]) // uids currently face-up (max 2)
@@ -247,6 +252,9 @@ export default function Memotex() {
             setMatched((prev) => [...prev, a.imageId])
             setFlipped([])
             setScores((prev) => ({ ...prev, [turn]: prev[turn] + 1 }))
+            // Trigger celebration toast
+            setMatchToast({ id: a.imageId, key: Date.now() })
+            setTimeout(() => setMatchToast(null), 1500)
             // same player goes again — no turn switch
           }, matchMs)
         } else {
@@ -296,6 +304,8 @@ export default function Memotex() {
           setTheme={setTheme}
           cardBack={cardBack}
           setCardBack={setCardBack}
+          avatars={avatars}
+          setAvatars={setAvatars}
           players={players}
           setPlayers={setPlayers}
           onStart={startGame}
@@ -322,6 +332,8 @@ export default function Memotex() {
           totalPairs={totalPairs}
           size={size}
           cardBack={cardBack}
+          avatars={avatars}
+          matchToast={matchToast}
         />
       )}
 
@@ -333,6 +345,7 @@ export default function Memotex() {
           moves={moves}
           elapsed={elapsed}
           totalPairs={totalPairs}
+          avatars={avatars}
           onPlayAgain={newGame}
           onBackToStart={backToStart}
         />
@@ -344,7 +357,7 @@ export default function Memotex() {
 /* =========================================================================
    START SCREEN
    ========================================================================= */
-function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, setPreview, theme, setTheme, cardBack, setCardBack, players, setPlayers, onStart }) {
+function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, setPreview, theme, setTheme, cardBack, setCardBack, avatars, setAvatars, players, setPlayers, onStart }) {
   return (
     <div className="screen start-screen">
       <h1 className="title">
@@ -432,9 +445,9 @@ function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, s
         ))}
       </div>
 
-      <div className="name-fields">
-        <label className="name-label">
-          {mode === 'single' ? 'Your name' : 'Player 1 name'}
+      <div className="player-setup">
+        <div className="player-card">
+          <div className="player-avatar-big">{avatars.p1}</div>
           <input
             className="name-input"
             type="text"
@@ -443,10 +456,21 @@ function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, s
             onChange={(e) => setPlayers((p) => ({ ...p, p1: e.target.value }))}
             placeholder="Player 1"
           />
-        </label>
+          <div className="avatar-picker">
+            {AVATARS.map((a) => (
+              <button
+                key={a}
+                className={`avatar-btn ${avatars.p1 === a ? 'active' : ''}`}
+                onClick={() => setAvatars((prev) => ({ ...prev, p1: a }))}
+              >
+                {a}
+              </button>
+            ))}
+          </div>
+        </div>
         {mode === 'two' && (
-          <label className="name-label">
-            Player 2 name
+          <div className="player-card">
+            <div className="player-avatar-big">{avatars.p2}</div>
             <input
               className="name-input"
               type="text"
@@ -455,7 +479,18 @@ function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, s
               onChange={(e) => setPlayers((p) => ({ ...p, p2: e.target.value }))}
               placeholder="Player 2"
             />
-          </label>
+            <div className="avatar-picker">
+              {AVATARS.map((a) => (
+                <button
+                  key={a}
+                  className={`avatar-btn ${avatars.p2 === a ? 'active' : ''}`}
+                  onClick={() => setAvatars((prev) => ({ ...prev, p2: a }))}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
@@ -488,6 +523,8 @@ function GameScreen({
   totalPairs,
   size,
   cardBack,
+  avatars,
+  matchToast,
 }) {
   const sizeConfig = SIZES.find((s) => s.id === size) || SIZES[2]
   const cols = sizeConfig.cols
@@ -519,16 +556,19 @@ function GameScreen({
         <div className="header-right">
           {mode === 'single' ? (
             <div className="score-chip">
+              <span className="score-avatar">{avatars.p1}</span>
               <span className="score-name">{players.p1}</span>
               <span className="score-value">🏆 {scores.p1}</span>
             </div>
           ) : (
             <div className="score-pair">
               <div className={`score-chip ${turn === 'p1' ? 'is-active' : ''}`}>
+                <span className="score-avatar">{avatars.p1}</span>
                 <span className="score-name">{players.p1}</span>
                 <span className="score-value">🏆 {scores.p1}</span>
               </div>
               <div className={`score-chip ${turn === 'p2' ? 'is-active' : ''}`}>
+                <span className="score-avatar">{avatars.p2}</span>
                 <span className="score-name">{players.p2}</span>
                 <span className="score-value">🏆 {scores.p2}</span>
               </div>
@@ -559,6 +599,15 @@ function GameScreen({
         </div>
         <span className="progress-text">{matched.length}/{totalPairs} pairs</span>
       </div>
+
+      {/* Match celebration toast */}
+      {matchToast && (
+        <div key={matchToast.key} className="match-toast">
+          <span className="match-toast-emoji">✨</span>
+          <span className="match-toast-text">Match!</span>
+          <span className="match-toast-emoji">🎉</span>
+        </div>
+      )}
 
       <div
         className="board"
@@ -618,7 +667,7 @@ function Card({ card, isFlipped, isMatched, isPreview, turnColor, cardBack, onCl
 /* =========================================================================
    END SCREEN
    ========================================================================= */
-function EndScreen({ mode, players, scores, moves, elapsed, totalPairs, onPlayAgain, onBackToStart }) {
+function EndScreen({ mode, players, scores, moves, elapsed, totalPairs, avatars, onPlayAgain, onBackToStart }) {
   let winnerText
   if (mode === 'single') {
     winnerText = ratingFor(moves, totalPairs)
@@ -641,6 +690,10 @@ function EndScreen({ mode, players, scores, moves, elapsed, totalPairs, onPlayAg
 
       {mode === 'single' ? (
         <div className="result-card">
+          <div className="result-row result-player">
+            <span>{avatars.p1} {players.p1}</span>
+            <strong>{scores.p1}/{totalPairs}</strong>
+          </div>
           <div className="result-row">
             <span>⏱️ Time</span>
             <strong>{formatTime(elapsed)}</strong>
@@ -649,19 +702,15 @@ function EndScreen({ mode, players, scores, moves, elapsed, totalPairs, onPlayAg
             <span>👆 Moves</span>
             <strong>{moves}</strong>
           </div>
-          <div className="result-row">
-            <span>🏆 Pairs</span>
-            <strong>{scores.p1}/{totalPairs}</strong>
-          </div>
         </div>
       ) : (
         <div className="result-card">
-          <div className="result-row">
-            <span>🏆 {players.p1}</span>
+          <div className="result-row result-player">
+            <span>{avatars.p1} {players.p1}</span>
             <strong>{scores.p1} pairs</strong>
           </div>
-          <div className="result-row">
-            <span>🏆 {players.p2}</span>
+          <div className="result-row result-player">
+            <span>{avatars.p2} {players.p2}</span>
             <strong>{scores.p2} pairs</strong>
           </div>
           <div className="result-row">

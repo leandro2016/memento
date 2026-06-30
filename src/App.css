@@ -603,6 +603,119 @@
   min-width: 48px;
 }
 
+/* ---- Player setup with avatars ---- */
+.player-setup {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.player-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: #f8f9fa;
+  border-radius: 16px;
+  padding: 14px 16px;
+  min-width: 200px;
+}
+
+.memotex[data-theme="space"] .player-card {
+  background: rgba(40, 40, 60, 0.6);
+}
+
+.player-avatar-big {
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.avatar-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  max-width: 220px;
+}
+
+.avatar-btn {
+  font-size: 1.4rem;
+  padding: 4px 6px;
+  border-radius: 10px;
+  background: #fff;
+  transition: transform 0.15s, box-shadow 0.2s;
+  line-height: 1;
+}
+
+.memotex[data-theme="space"] .avatar-btn {
+  background: rgba(60, 60, 90, 0.6);
+}
+
+.avatar-btn:hover {
+  transform: scale(1.15);
+}
+
+.avatar-btn.active {
+  box-shadow: 0 0 0 3px #ffd166;
+  transform: scale(1.15);
+}
+
+/* ---- Score chip with avatar ---- */
+.score-avatar {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+/* ---- Match celebration toast ---- */
+.match-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ffd166, #fb5607);
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 800;
+  animation: toastPop 1.5s ease forwards;
+  box-shadow: 0 6px 20px rgba(251, 86, 7, 0.4);
+}
+
+.match-toast-emoji {
+  font-size: 1.6rem;
+  animation: emojiSpin 0.6s ease;
+}
+
+@keyframes toastPop {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  20% { transform: scale(1.2) rotate(3deg); opacity: 1; }
+  40% { transform: scale(1) rotate(0); }
+  80% { transform: scale(1) rotate(0); opacity: 1; }
+  100% { transform: scale(0.8) translateY(-20px); opacity: 0; }
+}
+
+@keyframes emojiSpin {
+  from { transform: rotate(0) scale(0); }
+  to { transform: rotate(360deg) scale(1); }
+}
+
+/* ---- Enhanced matched card celebration ---- */
+.card.matched .card-front {
+  box-shadow: 0 0 0 3px #ffd166, 0 0 14px 4px rgba(255, 209, 102, 0.7);
+  animation: matchCelebrate 0.8s ease;
+}
+
+@keyframes matchCelebrate {
+  0% { transform: rotateY(180deg) scale(1); }
+  20% { transform: rotateY(180deg) scale(1.15) rotate(-3deg); }
+  40% { transform: rotateY(180deg) scale(1.1) rotate(3deg); }
+  60% { transform: rotateY(180deg) scale(1.12) rotate(-2deg); }
+  100% { transform: rotateY(180deg) scale(1) rotate(0); }
+}
+
 /* ---- End screen ---- */
 .end-screen {
   background: #fff;
