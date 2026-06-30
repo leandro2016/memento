@@ -57,6 +57,23 @@ const PREVIEWS = [
   { id: 8, label: '⏱️ 8s' },
 ]
 
+/* ---- Card back designs ---- */
+const BACKS = [
+  { id: 'question', icon: '❓', label: '❓' },
+  { id: 'ball', icon: '⚽', label: '⚽' },
+  { id: 'rainbow', icon: '🌈', label: '🌈' },
+  { id: 'star', icon: '⭐', label: '⭐' },
+  { id: 'magic', icon: '🔮', label: '🔮' },
+]
+
+/* ---- Themes: background gradient + accent colors ---- */
+const THEMES = [
+  { id: 'ocean', label: '🌊 Ocean', bg: 'linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%)', accent: '#118ab2' },
+  { id: 'jungle', label: '🌴 Jungle', bg: 'linear-gradient(135deg, #d4f1d4 0%, #a8e6a1 100%)', accent: '#06d6a0' },
+  { id: 'sunset', label: '🌅 Sunset', bg: 'linear-gradient(135deg, #fef9f3 0%, #ffd6a5 100%)', accent: '#ef476f' },
+  { id: 'space', label: '🚀 Space', bg: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', accent: '#8338ec' },
+]
+
 /* ---- Helpers ---- */
 function shuffle(array) {
   const a = [...array]
@@ -103,6 +120,8 @@ export default function Memotex() {
   const [level, setLevel] = useState('normal') // 'easy' | 'normal' | 'hard'
   const [size, setSize] = useState(16) // 8 | 12 | 16 pairs
   const [preview, setPreview] = useState(5) // 0 (off) | 3 | 5 | 8 seconds
+  const [theme, setTheme] = useState('ocean') // ocean | jungle | sunset | space
+  const [cardBack, setCardBack] = useState('question') // question | ball | rainbow | star | magic
   const [players, setPlayers] = useState({ p1: 'Player 1', p2: 'Player 2' })
 
   const [deck, setDeck] = useState(() => buildDeck(size))
@@ -250,8 +269,19 @@ export default function Memotex() {
   /* ---- Render helpers ---- */
   const activeName = mode === 'single' ? players.p1 : turn === 'p1' ? players.p1 : players.p2
 
+  const activeTheme = THEMES.find((t) => t.id === theme) || THEMES[0]
+
   return (
-    <div className="memotex">
+    <div className="memotex" data-theme={theme} style={{ background: activeTheme.bg }}>
+      {/* Animated floating shapes background */}
+      <div className="bg-shapes" aria-hidden="true">
+        <span className="bg-shape s1" />
+        <span className="bg-shape s2" />
+        <span className="bg-shape s3" />
+        <span className="bg-shape s4" />
+        <span className="bg-shape s5" />
+      </div>
+
       {screen === 'start' && (
         <StartScreen
           mode={mode}
@@ -262,6 +292,10 @@ export default function Memotex() {
           setSize={setSize}
           preview={preview}
           setPreview={setPreview}
+          theme={theme}
+          setTheme={setTheme}
+          cardBack={cardBack}
+          setCardBack={setCardBack}
           players={players}
           setPlayers={setPlayers}
           onStart={startGame}
@@ -287,6 +321,7 @@ export default function Memotex() {
           previewLeft={previewLeft}
           totalPairs={totalPairs}
           size={size}
+          cardBack={cardBack}
         />
       )}
 
@@ -309,7 +344,7 @@ export default function Memotex() {
 /* =========================================================================
    START SCREEN
    ========================================================================= */
-function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, setPreview, players, setPlayers, onStart }) {
+function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, setPreview, theme, setTheme, cardBack, setCardBack, players, setPlayers, onStart }) {
   return (
     <div className="screen start-screen">
       <h1 className="title">
@@ -371,6 +406,32 @@ function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, s
         ))}
       </div>
 
+      <div className="level-buttons">
+        <span className="level-label">Theme:</span>
+        {THEMES.map((t) => (
+          <button
+            key={t.id}
+            className={`level-btn ${theme === t.id ? 'active' : ''}`}
+            onClick={() => setTheme(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="level-buttons">
+        <span className="level-label">Card back:</span>
+        {BACKS.map((b) => (
+          <button
+            key={b.id}
+            className={`level-btn back-btn ${cardBack === b.id ? 'active' : ''}`}
+            onClick={() => setCardBack(b.id)}
+          >
+            {b.label}
+          </button>
+        ))}
+      </div>
+
       <div className="name-fields">
         <label className="name-label">
           {mode === 'single' ? 'Your name' : 'Player 1 name'}
@@ -426,6 +487,7 @@ function GameScreen({
   previewLeft,
   totalPairs,
   size,
+  cardBack,
 }) {
   const sizeConfig = SIZES.find((s) => s.id === size) || SIZES[2]
   const cols = sizeConfig.cols
@@ -487,6 +549,17 @@ function GameScreen({
         )
       )}
 
+      {/* Progress bar */}
+      <div className="progress-wrap">
+        <div className="progress-track">
+          <div
+            className="progress-fill"
+            style={{ width: `${(matched.length / totalPairs) * 100}%` }}
+          />
+        </div>
+        <span className="progress-text">{matched.length}/{totalPairs} pairs</span>
+      </div>
+
       <div
         className="board"
         style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
@@ -502,6 +575,7 @@ function GameScreen({
               isMatched={isMatched}
               isPreview={previewing}
               turnColor={mode === 'two' ? turn : null}
+              cardBack={cardBack}
               onClick={() => onCardClick(card)}
             />
           )
@@ -520,7 +594,8 @@ function GameScreen({
 /* =========================================================================
    CARD
    ========================================================================= */
-function Card({ card, isFlipped, isMatched, isPreview, turnColor, onClick }) {
+function Card({ card, isFlipped, isMatched, isPreview, turnColor, cardBack, onClick }) {
+  const backIcon = BACKS.find((b) => b.id === cardBack)?.icon || '❓'
   return (
     <button
       className={`card ${isFlipped ? 'flipped' : ''} ${isMatched ? 'matched' : ''} ${isPreview ? 'preview' : ''} ${turnColor ? `turn-${turnColor}` : ''}`}
@@ -530,7 +605,7 @@ function Card({ card, isFlipped, isMatched, isPreview, turnColor, onClick }) {
     >
       <div className="card-inner">
         <div className="card-face card-back">
-          <span className="card-back-icon">❓</span>
+          <span className="card-back-icon">{backIcon}</span>
         </div>
         <div className="card-face card-front">
           <img src={card.src} alt={card.label} draggable={false} />
