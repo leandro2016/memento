@@ -262,6 +262,7 @@
 /* ---- Game screen ---- */
 .game-screen {
   max-width: 900px;
+  position: relative;
 }
 
 .game-header {
@@ -669,8 +670,13 @@
   line-height: 1;
 }
 
-/* ---- Match celebration toast ---- */
+/* ---- Match celebration toast (floating, doesn't shift layout) ---- */
 .match-toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -682,6 +688,7 @@
   font-weight: 800;
   animation: toastPop 1.5s ease forwards;
   box-shadow: 0 6px 20px rgba(251, 86, 7, 0.4);
+  pointer-events: none;
 }
 
 .match-toast-emoji {
@@ -690,11 +697,11 @@
 }
 
 @keyframes toastPop {
-  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
-  20% { transform: scale(1.2) rotate(3deg); opacity: 1; }
-  40% { transform: scale(1) rotate(0); }
-  80% { transform: scale(1) rotate(0); opacity: 1; }
-  100% { transform: scale(0.8) translateY(-20px); opacity: 0; }
+  0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; }
+  20% { transform: translate(-50%, -50%) scale(1.2) rotate(3deg); opacity: 1; }
+  40% { transform: translate(-50%, -50%) scale(1) rotate(0); }
+  80% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
+  100% { transform: translate(-50%, -80%) scale(0.8); opacity: 0; }
 }
 
 @keyframes emojiSpin {
