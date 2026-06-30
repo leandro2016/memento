@@ -1,7 +1,7 @@
 /* MEMOTEX GAME STYLES */
 
 .memotex {
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
   background: linear-gradient(135deg, #fef9f3 0%, #e0f7fa 100%);
   display: flex;
@@ -9,8 +9,7 @@
   justify-content: center;
   padding: 16px;
   position: relative;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   transition: background 0.6s ease;
 }
 
@@ -438,7 +437,9 @@
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
+  max-height: 100%;
   align-content: center;
+  overflow: hidden;
 }
 
 /* iPad portrait & small laptops */
@@ -474,17 +475,17 @@
 
 /* ---- Card ---- */
 .card {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1;
   background: transparent;
   padding: 0;
   border-radius: 14px;
   cursor: pointer;
   min-height: 0;
+  max-height: 100%;
 }
 
 @media (max-width: 480px) {
   .card {
-    aspect-ratio: 1 / 1;
     border-radius: 10px;
   }
 }

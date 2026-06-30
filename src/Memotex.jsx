@@ -1,39 +1,82 @@
 import { useState, useEffect, useCallback } from 'react'
 
 /* =========================================================================
-   PHOTOS — REPLACE THESE WITH YOUR OWN 8 IMAGES
+   CARD DECKS — each deck is a set of photos kids can play with
    -------------------------------------------------------------------------
-   To use your own photos (e.g. Argentinian football players):
-   1. Drop your image files into the `public/cards/` folder
-      (e.g. public/cards/messi.jpg, public/cards/maradona.png, ...)
-   2. Update the `src` values in the IMAGES array below to point to them,
-      e.g. { id: 1, src: '/cards/messi.jpg', label: 'Messi' }
-   Each entry is used exactly twice (a matching pair). Keep exactly 16 entries
-   for a 4x8 board (32 cards). You have 16 photos in /figus — all are used.
+   To add a new deck:
+   1. Create a folder inside public/cards/ (e.g. public/cards/animals/)
+   2. Drop your image files there (e.g. dog.jpg, cat.jpg, ...)
+   3. Add a new entry to the DECKS array below:
+      { id: 'animals', label: '🐶 Animals', folder: 'animals',
+        images: [
+          { id: 1, file: 'dog.jpg', label: 'Dog' },
+          { id: 2, file: 'cat.jpg', label: 'Cat' },
+          ...up to 16 images...
+        ] }
+   The game will use the first N images based on the "Cards" setting (8/12/16).
    ========================================================================= */
 const BASE = import.meta.env.BASE_URL // '/memento/' in prod, '/' in dev
-const img = (file) => `${BASE}cards/${file}`
+const img = (folder, file) => `${BASE}cards/${folder}/${file}`
 
-const IMAGES = [
-  { id: 1, src: img('1.JPG'), label: 'Card 1' },
-  { id: 2, src: img('2.JPG'), label: 'Card 2' },
-  { id: 3, src: img('3.JPG'), label: 'Card 3' },
-  { id: 4, src: img('4.PNG'), label: 'Card 4' },
-  { id: 5, src: img('5.PNG'), label: 'Card 5' },
-  { id: 6, src: img('6.JPG'), label: 'Card 6' },
-  { id: 7, src: img('7.JPG'), label: 'Card 7' },
-  { id: 8, src: img('8.JPG'), label: 'Card 8' },
-  { id: 9, src: img('9.JPG'), label: 'Card 9' },
-  { id: 10, src: img('10.JPG'), label: 'Card 10' },
-  { id: 11, src: img('11.JPG'), label: 'Card 11' },
-  { id: 12, src: img('12.JPG'), label: 'Card 12' },
-  { id: 13, src: img('13.JPG'), label: 'Card 13' },
-  { id: 14, src: img('14.JPG'), label: 'Card 14' },
-  { id: 15, src: img('15.JPG'), label: 'Card 15' },
-  { id: 16, src: img('16.JPG'), label: 'Card 16' },
+const DECKS = [
+  {
+    id: 'argentina',
+    label: '🇦🇷 Argentina',
+    folder: '', // current photos are in public/cards/ root
+    images: [
+      { id: 1, file: '1.JPG', label: 'Card 1' },
+      { id: 2, file: '2.JPG', label: 'Card 2' },
+      { id: 3, file: '3.JPG', label: 'Card 3' },
+      { id: 4, file: '4.PNG', label: 'Card 4' },
+      { id: 5, file: '5.PNG', label: 'Card 5' },
+      { id: 6, file: '6.JPG', label: 'Card 6' },
+      { id: 7, file: '7.JPG', label: 'Card 7' },
+      { id: 8, file: '8.JPG', label: 'Card 8' },
+      { id: 9, file: '9.JPG', label: 'Card 9' },
+      { id: 10, file: '10.JPG', label: 'Card 10' },
+      { id: 11, file: '11.JPG', label: 'Card 11' },
+      { id: 12, file: '12.JPG', label: 'Card 12' },
+      { id: 13, file: '13.JPG', label: 'Card 13' },
+      { id: 14, file: '14.JPG', label: 'Card 14' },
+      { id: 15, file: '15.JPG', label: 'Card 15' },
+      { id: 16, file: '16.JPG', label: 'Card 16' },
+    ],
+  },
+  // ---- Add more decks here! ----
+  {
+    id: 'animals',
+    label: '🐶 Animals',
+    folder: 'animals', // photos in public/cards/animals/
+    images: [
+      { id: 1, file: 'dog.svg', label: 'Dog' },
+      { id: 2, file: 'cat.svg', label: 'Cat' },
+      { id: 3, file: 'lion.svg', label: 'Lion' },
+      { id: 4, file: 'fox.svg', label: 'Fox' },
+      { id: 5, file: 'panda.svg', label: 'Panda' },
+      { id: 6, file: 'frog.svg', label: 'Frog' },
+      { id: 7, file: 'unicorn.svg', label: 'Unicorn' },
+      { id: 8, file: 'tiger.svg', label: 'Tiger' },
+      { id: 9, file: 'monkey.svg', label: 'Monkey' },
+      { id: 10, file: 'rabbit.svg', label: 'Rabbit' },
+      { id: 11, file: 'bear.svg', label: 'Bear' },
+      { id: 12, file: 'pig.svg', label: 'Pig' },
+      { id: 13, file: 'cow.svg', label: 'Cow' },
+      { id: 14, file: 'duck.svg', label: 'Duck' },
+      { id: 15, file: 'owl.svg', label: 'Owl' },
+      { id: 16, file: 'penguin.svg', label: 'Penguin' },
+    ],
+  },
 ]
 
-const TOTAL_PAIRS = IMAGES.length // 16 available images
+// Build the IMAGES array from the selected deck (default: first deck)
+function getDeckImages(deckId) {
+  const deck = DECKS.find((d) => d.id === deckId) || DECKS[0]
+  return deck.images.map((im) => ({
+    id: im.id,
+    src: img(deck.folder, im.file),
+    label: im.label,
+  }))
+}
 
 /* ---- Board size options: how many pairs to play with ---- */
 const SIZES = [
@@ -87,14 +130,14 @@ function shuffle(array) {
   return a
 }
 
-function buildDeck(pairCount = TOTAL_PAIRS) {
+function buildDeck(images, pairCount) {
   // Use the first `pairCount` images, each appears twice
-  const selected = IMAGES.slice(0, pairCount)
-  const doubled = [...selected, ...selected].map((img, idx) => ({
+  const selected = images.slice(0, pairCount)
+  const doubled = [...selected, ...selected].map((im, idx) => ({
     uid: idx,
-    imageId: img.id,
-    src: img.src,
-    label: img.label,
+    imageId: im.id,
+    src: im.src,
+    label: im.label,
   }))
   return shuffle(doubled)
 }
@@ -125,11 +168,12 @@ export default function Memotex() {
   const [preview, setPreview] = useState(5) // 0 (off) | 3 | 5 | 8 seconds
   const [theme, setTheme] = useState('ocean') // ocean | jungle | sunset | space
   const [cardBack, setCardBack] = useState('question') // question | ball | rainbow | star | magic
+  const [deckId, setDeckId] = useState(DECKS[0].id) // which card deck to use
   const [players, setPlayers] = useState({ p1: 'Player 1', p2: 'Player 2' })
   const [avatars, setAvatars] = useState({ p1: '🐶', p2: '🐱' })
   const [matchToast, setMatchToast] = useState(null) // { id, emoji } for celebration toast
 
-  const [deck, setDeck] = useState(() => buildDeck(size))
+  const [deck, setDeck] = useState(() => buildDeck(getDeckImages(deckId), size))
   const [flipped, setFlipped] = useState([]) // uids currently face-up (max 2)
   const [matched, setMatched] = useState([]) // imageIds that are matched
   const [locked, setLocked] = useState(false) // prevent clicks during pause/preview
@@ -176,14 +220,16 @@ export default function Memotex() {
     return () => clearInterval(id)
   }, [previewing])
 
-  const startGame = useCallback((selectedMode, selectedLevel, selectedSize, selectedPreview) => {
+  const startGame = useCallback((selectedMode, selectedLevel, selectedSize, selectedPreview, selectedDeckId) => {
     const sz = selectedSize || size
     const pv = selectedPreview !== undefined ? selectedPreview : preview
+    const dk = selectedDeckId || deckId
     setMode(selectedMode)
     setLevel(selectedLevel)
     setSize(sz)
     setPreview(pv)
-    setDeck(buildDeck(sz))
+    setDeckId(dk)
+    setDeck(buildDeck(getDeckImages(dk), sz))
     setFlipped([])
     setMatched([])
     setMoves(0)
@@ -201,10 +247,10 @@ export default function Memotex() {
       setRunning(true) // no preview — start immediately
     }
     setScreen('game')
-  }, [size, preview])
+  }, [size, preview, deckId])
 
   const newGame = useCallback(() => {
-    setDeck(buildDeck(size))
+    setDeck(buildDeck(getDeckImages(deckId), size))
     setFlipped([])
     setMatched([])
     setMoves(0)
@@ -222,7 +268,7 @@ export default function Memotex() {
       setRunning(true)
     }
     setScreen('game')
-  }, [size, preview])
+  }, [size, preview, deckId])
 
   const backToStart = useCallback(() => {
     setRunning(false)
@@ -304,6 +350,8 @@ export default function Memotex() {
           setTheme={setTheme}
           cardBack={cardBack}
           setCardBack={setCardBack}
+          deckId={deckId}
+          setDeckId={setDeckId}
           avatars={avatars}
           setAvatars={setAvatars}
           players={players}
@@ -357,13 +405,28 @@ export default function Memotex() {
 /* =========================================================================
    START SCREEN
    ========================================================================= */
-function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, setPreview, theme, setTheme, cardBack, setCardBack, avatars, setAvatars, players, setPlayers, onStart }) {
+function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, setPreview, theme, setTheme, cardBack, setCardBack, deckId, setDeckId, avatars, setAvatars, players, setPlayers, onStart }) {
   return (
     <div className="screen start-screen">
       <h1 className="title">
         🧠 Memotex <span className="title-emoji">🎮</span>
       </h1>
       <p className="subtitle">Find all the matching pairs!</p>
+
+      {DECKS.length > 1 && (
+        <div className="level-buttons">
+          <span className="level-label">Deck:</span>
+          {DECKS.map((d) => (
+            <button
+              key={d.id}
+              className={`level-btn ${deckId === d.id ? 'active' : ''}`}
+              onClick={() => setDeckId(d.id)}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="mode-buttons">
         <button
@@ -494,7 +557,7 @@ function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, s
         )}
       </div>
 
-      <button className="play-btn" onClick={() => onStart(mode, level, size, preview)}>
+      <button className="play-btn" onClick={() => onStart(mode, level, size, preview, deckId)}>
         ▶️ Play!
       </button>
     </div>
