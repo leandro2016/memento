@@ -11,23 +11,26 @@ import { useState, useEffect, useCallback } from 'react'
    Each entry is used exactly twice (a matching pair). Keep exactly 16 entries
    for a 4x8 board (32 cards). You have 16 photos in /figus — all are used.
    ========================================================================= */
+const BASE = import.meta.env.BASE_URL // '/memento/' in prod, '/' in dev
+const img = (file) => `${BASE}cards/${file}`
+
 const IMAGES = [
-  { id: 1, src: '/cards/1.JPG', label: 'Card 1' },
-  { id: 2, src: '/cards/2.JPG', label: 'Card 2' },
-  { id: 3, src: '/cards/3.JPG', label: 'Card 3' },
-  { id: 4, src: '/cards/4.PNG', label: 'Card 4' },
-  { id: 5, src: '/cards/5.PNG', label: 'Card 5' },
-  { id: 6, src: '/cards/6.JPG', label: 'Card 6' },
-  { id: 7, src: '/cards/7.JPG', label: 'Card 7' },
-  { id: 8, src: '/cards/8.JPG', label: 'Card 8' },
-  { id: 9, src: '/cards/9.JPG', label: 'Card 9' },
-  { id: 10, src: '/cards/10.JPG', label: 'Card 10' },
-  { id: 11, src: '/cards/11.JPG', label: 'Card 11' },
-  { id: 12, src: '/cards/12.JPG', label: 'Card 12' },
-  { id: 13, src: '/cards/13.JPG', label: 'Card 13' },
-  { id: 14, src: '/cards/14.JPG', label: 'Card 14' },
-  { id: 15, src: '/cards/15.JPG', label: 'Card 15' },
-  { id: 16, src: '/cards/16.JPG', label: 'Card 16' },
+  { id: 1, src: img('1.JPG'), label: 'Card 1' },
+  { id: 2, src: img('2.JPG'), label: 'Card 2' },
+  { id: 3, src: img('3.JPG'), label: 'Card 3' },
+  { id: 4, src: img('4.PNG'), label: 'Card 4' },
+  { id: 5, src: img('5.PNG'), label: 'Card 5' },
+  { id: 6, src: img('6.JPG'), label: 'Card 6' },
+  { id: 7, src: img('7.JPG'), label: 'Card 7' },
+  { id: 8, src: img('8.JPG'), label: 'Card 8' },
+  { id: 9, src: img('9.JPG'), label: 'Card 9' },
+  { id: 10, src: img('10.JPG'), label: 'Card 10' },
+  { id: 11, src: img('11.JPG'), label: 'Card 11' },
+  { id: 12, src: img('12.JPG'), label: 'Card 12' },
+  { id: 13, src: img('13.JPG'), label: 'Card 13' },
+  { id: 14, src: img('14.JPG'), label: 'Card 14' },
+  { id: 15, src: img('15.JPG'), label: 'Card 15' },
+  { id: 16, src: img('16.JPG'), label: 'Card 16' },
 ]
 
 const TOTAL_PAIRS = IMAGES.length // 8
