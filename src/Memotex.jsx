@@ -89,6 +89,29 @@ const DECKS = [
       { id: 16, file: 'switzerland.svg', label: 'Switzerland' },
     ],
   },
+  {
+    id: 'teams',
+    label: '⚽ Football Teams',
+    folder: 'teams', // put your logo images in public/cards/teams/
+    images: [
+      { id: 1, file: 'argentina.png', label: 'Argentina' },
+      { id: 2, file: 'brazil.png', label: 'Brazil' },
+      { id: 3, file: 'france.png', label: 'France' },
+      { id: 4, file: 'germany.png', label: 'Germany' },
+      { id: 5, file: 'spain.png', label: 'Spain' },
+      { id: 6, file: 'italy.png', label: 'Italy' },
+      { id: 7, file: 'england.png', label: 'England' },
+      { id: 8, file: 'portugal.png', label: 'Portugal' },
+      { id: 9, file: 'netherlands.png', label: 'Netherlands' },
+      { id: 10, file: 'belgium.png', label: 'Belgium' },
+      { id: 11, file: 'uruguay.png', label: 'Uruguay' },
+      { id: 12, file: 'mexico.png', label: 'Mexico' },
+      { id: 13, file: 'croatia.png', label: 'Croatia' },
+      { id: 14, file: 'japan.png', label: 'Japan' },
+      { id: 15, file: 'morocco.png', label: 'Morocco' },
+      { id: 16, file: 'switzerland.png', label: 'Switzerland' },
+    ],
+  },
 ]
 
 // Build the IMAGES array from the selected deck (default: first deck)
