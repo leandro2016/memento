@@ -117,7 +117,7 @@ const DECKS = [
     label: '🌳 Ceibo',
     folder: 'ceibo', // photos in public/cards/ceibo/
     images: [
-      { id: 1, file: '3.JPG', label: 'Ceibo 1' },
+      { id: 1, file: 'PHOTO-2026-07-01-17-52-34.jpg', label: 'Ceibo 1' },
       { id: 2, file: 'PHOTO-2026-06-26-13-04-37.jpg', label: 'Ceibo 2' },
       { id: 3, file: 'PHOTO-2026-06-26-13-04-37[1].jpg', label: 'Ceibo 3' },
       { id: 4, file: 'PHOTO-2026-06-26-13-04-38.jpg', label: 'Ceibo 4' },
