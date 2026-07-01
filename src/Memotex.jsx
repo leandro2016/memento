@@ -112,6 +112,29 @@ const DECKS = [
       { id: 16, file: 'PHOTO-2026-07-01-12-41-50[2].jpg', label: 'Team 16' },
     ],
   },
+  {
+    id: 'ceibo',
+    label: '🌳 Ceibo',
+    folder: 'ceibo', // photos in public/cards/ceibo/
+    images: [
+      { id: 1, file: '3.JPG', label: 'Ceibo 1' },
+      { id: 2, file: 'PHOTO-2026-06-26-13-04-37.jpg', label: 'Ceibo 2' },
+      { id: 3, file: 'PHOTO-2026-06-26-13-04-37[1].jpg', label: 'Ceibo 3' },
+      { id: 4, file: 'PHOTO-2026-06-26-13-04-38.jpg', label: 'Ceibo 4' },
+      { id: 5, file: 'PHOTO-2026-06-26-13-04-38[1].jpg', label: 'Ceibo 5' },
+      { id: 6, file: 'PHOTO-2026-06-26-13-04-39.jpg', label: 'Ceibo 6' },
+      { id: 7, file: 'PHOTO-2026-06-26-13-04-39[1].jpg', label: 'Ceibo 7' },
+      { id: 8, file: 'PHOTO-2026-06-26-13-04-39[2].jpg', label: 'Ceibo 8' },
+      { id: 9, file: 'PHOTO-2026-06-26-13-04-40.jpg', label: 'Ceibo 9' },
+      { id: 10, file: 'PHOTO-2026-06-26-13-04-40[1].jpg', label: 'Ceibo 10' },
+      { id: 11, file: 'PHOTO-2026-06-26-13-04-41.jpg', label: 'Ceibo 11' },
+      { id: 12, file: 'PHOTO-2026-06-26-13-04-41[1].jpg', label: 'Ceibo 12' },
+      { id: 13, file: 'PHOTO-2026-06-26-13-04-41[2].jpg', label: 'Ceibo 13' },
+      { id: 14, file: 'PHOTO-2026-06-26-13-04-42.jpg', label: 'Ceibo 14' },
+      { id: 15, file: 'PHOTO-2026-06-26-13-04-42[1].jpg', label: 'Ceibo 15' },
+      { id: 16, file: 'PHOTO-2026-06-26-13-04-44.jpg', label: 'Ceibo 16' },
+    ],
+  },
 ]
 
 // Build the IMAGES array from the selected deck (default: first deck)
