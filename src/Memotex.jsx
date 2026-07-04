@@ -238,8 +238,8 @@ export default function Memotex() {
   const [theme, setTheme] = useState('ocean') // ocean | jungle | sunset | space
   const [cardBack, setCardBack] = useState('question') // question | ball | rainbow | star | magic
   const [deckId, setDeckId] = useState(DECKS[0].id) // which card deck to use
-  const [players, setPlayers] = useState({ p1: 'Player 1', p2: 'Player 2' })
-  const [avatars, setAvatars] = useState({ p1: '🐶', p2: '🐱' })
+  const [players, setPlayers] = useState({ p1: 'Player 1', p2: 'Player 2', p3: 'Player 3' })
+  const [avatars, setAvatars] = useState({ p1: '🐶', p2: '🐱', p3: '🦁' })
   const [matchToast, setMatchToast] = useState(null) // { id, emoji } for celebration toast
 
   const [deck, setDeck] = useState(() => buildDeck(getDeckImages(deckId), size))
@@ -302,7 +302,7 @@ export default function Memotex() {
     setFlipped([])
     setMatched([])
     setMoves(0)
-    setScores({ p1: 0, p2: 0 })
+    setScores({ p1: 0, p2: 0, p3: 0 })
     setTurn('p1')
     setElapsed(0)
     setRunning(false)
@@ -323,7 +323,7 @@ export default function Memotex() {
     setFlipped([])
     setMatched([])
     setMoves(0)
-    setScores({ p1: 0, p2: 0 })
+    setScores({ p1: 0, p2: 0, p3: 0 })
     setTurn('p1')
     setElapsed(0)
     setRunning(false)
@@ -381,6 +381,8 @@ export default function Memotex() {
             setLocked(false)
             if (mode === 'two') {
               setTurn((t) => (t === 'p1' ? 'p2' : 'p1'))
+            } else if (mode === 'three') {
+              setTurn((t) => (t === 'p1' ? 'p2' : t === 'p2' ? 'p3' : 'p1'))
             }
           }, peekMs)
         }
@@ -390,7 +392,7 @@ export default function Memotex() {
   )
 
   /* ---- Render helpers ---- */
-  const activeName = mode === 'single' ? players.p1 : turn === 'p1' ? players.p1 : players.p2
+  const activeName = mode === 'single' ? players.p1 : turn === 'p1' ? players.p1 : turn === 'p2' ? players.p2 : players.p3
 
   const activeTheme = THEMES.find((t) => t.id === theme) || THEMES[0]
 
@@ -510,6 +512,12 @@ function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, s
         >
           👥 Two Player
         </button>
+        <button
+          className={`mode-btn ${mode === 'three' ? 'active' : ''}`}
+          onClick={() => setMode('three')}
+        >
+          👨‍👩‍👦 Three Player
+        </button>
       </div>
 
       <div className="level-buttons">
@@ -624,6 +632,54 @@ function StartScreen({ mode, setMode, level, setLevel, size, setSize, preview, s
             </div>
           </div>
         )}
+        {mode === 'three' && (
+          <>
+            <div className="player-card">
+              <div className="player-avatar-big">{avatars.p2}</div>
+              <input
+                className="name-input"
+                type="text"
+                value={players.p2}
+                maxLength={14}
+                onChange={(e) => setPlayers((p) => ({ ...p, p2: e.target.value }))}
+                placeholder="Player 2"
+              />
+              <div className="avatar-picker">
+                {AVATARS.map((a) => (
+                  <button
+                    key={a}
+                    className={`avatar-btn ${avatars.p2 === a ? 'active' : ''}`}
+                    onClick={() => setAvatars((prev) => ({ ...prev, p2: a }))}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="player-card">
+              <div className="player-avatar-big">{avatars.p3}</div>
+              <input
+                className="name-input"
+                type="text"
+                value={players.p3}
+                maxLength={14}
+                onChange={(e) => setPlayers((p) => ({ ...p, p3: e.target.value }))}
+                placeholder="Player 3"
+              />
+              <div className="avatar-picker">
+                {AVATARS.map((a) => (
+                  <button
+                    key={a}
+                    className={`avatar-btn ${avatars.p3 === a ? 'active' : ''}`}
+                    onClick={() => setAvatars((prev) => ({ ...prev, p3: a }))}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <button className="play-btn" onClick={() => onStart(mode, level, size, preview, deckId)}>
@@ -704,6 +760,13 @@ function GameScreen({
                 <span className="score-name">{players.p2}</span>
                 <span className="score-value">🏆 {scores.p2}</span>
               </div>
+              {mode === 'three' && (
+                <div className={`score-chip ${turn === 'p3' ? 'is-active' : ''}`}>
+                  <span className="score-avatar">{avatars.p3}</span>
+                  <span className="score-name">{players.p3}</span>
+                  <span className="score-value">🏆 {scores.p3}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -714,7 +777,7 @@ function GameScreen({
           👀 Memorize the cards! {previewLeft}s
         </div>
       ) : (
-        mode === 'two' && (
+        (mode === 'two' || mode === 'three') && (
           <div className={`active-bar active-${turn}`}>
             <span>{activeName}&apos;s turn — pick two cards!</span>
           </div>
@@ -803,9 +866,13 @@ function EndScreen({ mode, players, scores, moves, elapsed, totalPairs, avatars,
   if (mode === 'single') {
     winnerText = ratingFor(moves, totalPairs)
   } else {
-    if (scores.p1 > scores.p2) winnerText = `🎉 ${players.p1} wins!`
-    else if (scores.p2 > scores.p1) winnerText = `🎉 ${players.p2} wins!`
-    else winnerText = "🤝 It's a tie!"
+    const max = Math.max(scores.p1, scores.p2, scores.p3 || 0)
+    const winners = ['p1', 'p2', 'p3'].filter((p) => scores[p] === max)
+    if (winners.length > 1) {
+      winnerText = "🤝 It's a tie!"
+    } else {
+      winnerText = `🎉 ${players[winners[0]]} wins!`
+    }
   }
 
   return (
@@ -844,6 +911,12 @@ function EndScreen({ mode, players, scores, moves, elapsed, totalPairs, avatars,
             <span>{avatars.p2} {players.p2}</span>
             <strong>{scores.p2} pairs</strong>
           </div>
+          {mode === 'three' && (
+            <div className="result-row result-player">
+              <span>{avatars.p3} {players.p3}</span>
+              <strong>{scores.p3} pairs</strong>
+            </div>
+          )}
           <div className="result-row">
             <span>👆 Total moves</span>
             <strong>{moves}</strong>
